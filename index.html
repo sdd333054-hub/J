@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
   <title>ZahirTV</title>  
+
+  <!-- ✅ Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3023826507882619"
+     crossorigin="anonymous"></script>
+
   <style>  
     * {  
       margin: 0;  
@@ -63,11 +68,17 @@
 <body>  
   <h1>🎬 ZahirTV</h1>  
   <p>Uygulama yükleniyor...</p>  
-  <div class="loader"></div>    <!-- Yeni sürüm bildirimi -->    <div class="update-toast" id="updateToast">✨ Yeni sürüm yüklendi!</div>    <!-- 🔥 UZAKTAN GÜNCELLEME KODU -->    <script>  
+  <div class="loader"></div>  
+
+  <!-- Yeni sürüm bildirimi -->
+  <div class="update-toast" id="updateToast">✨ Yeni sürüm yüklendi!</div>  
+
+  <!-- 🔥 UZAKTAN GÜNCELLEME KODU -->
+  <script>  
     const remoteURL = "https://h-rouge-nine.vercel.app/"; // senin siten  
     const versionKey = "zahir_version";  
     const toast = document.getElementById("updateToast");  
-  
+
     // Sürüm kontrolü için hash hesapla  
     function getHash(text) {  
       let hash = 0;  
@@ -77,7 +88,7 @@
       }  
       return hash;  
     }  
-  
+
     fetch(remoteURL)  
       .then(res => {  
         if (!res.ok) throw new Error("Sunucu hatası");  
@@ -86,7 +97,7 @@
       .then(html => {  
         const newHash = getHash(html);  
         const oldHash = localStorage.getItem(versionKey);  
-  
+
         // İlk kez yükleniyorsa direkt kaydet  
         if (!oldHash) {  
           localStorage.setItem(versionKey, newHash);  
@@ -96,7 +107,7 @@
           localStorage.setItem(versionKey, newHash);  
           toast.style.display = "block";  
         }  
-  
+
         // Yeni HTML’yi yükle  
         document.open();  
         document.write(html);  
@@ -105,5 +116,6 @@
       .catch(() => {  
         console.log("📴 İnternet yok, yerel sürüm açılıyor.");  
       });  
-  </script>  </body>  
- </html>
+  </script>  
+</body>  
+</html>
