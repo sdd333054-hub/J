@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZahirTV</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #0d0d0d;
+      color: #fff;
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    h1 {
+      color: #ff4444;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #ccc;
+      margin-bottom: 30px;
+    }
+    .loader {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid #ff4444;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .update-toast {
+      position: fixed;
+      bottom: 20px;
+      background-color: #1a1a1a;
+      color: #00ff99;
+      border: 1px solid #00ff99;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 ZahirTV</h1>
+  <p>Uygulama yükleniyor...</p>
+  <div class="loader"></div>
+
+  <!-- Yeni sürüm bildirimi -->
+  <div class="update-toast" id="updateToast">✨ Yeni sürüm yüklendi!</div>
+
+  <!-- 🔥 UZAKTAN GÜNCELLEME KODU -->
+  <script>
+    const remoteURL = "https://h-rouge-nine.vercel.app/index.html"; // senin siten
+    const versionKey = "zahir_version";
+    const toast = document.getElementById("updateToast");
+
+    // Sürüm kontrolü için hash hesapla
+    function getHash(text) {
+      let hash = 0;
+      for (let i = 0; i < text.length; i++) {
+        hash = (hash << 5) - hash + text.charCodeAt(i);
+        hash |= 0;
+      }
+      return hash;
+    }
+
+    fetch(remoteURL)
+      .then(res => {
+        if (!res.ok) throw new Error("Sunucu hatası");
+        return res.text();
+      })
+      .then(html => {
+        const newHash = getHash(html);
+        const oldHash = localStorage.getItem(versionKey);
+
+        // İlk kez yükleniyorsa direkt kaydet
+        if (!oldHash) {
+          localStorage.setItem(versionKey, newHash);
+        }
+        // Yeni sürüm geldiyse bildir
+        else if (newHash != oldHash) {
+          localStorage.setItem(versionKey, newHash);
+          toast.style.display = "block";
+        }
+
+        // Yeni HTML’yi yükle
+        document.open();
+        document.write(html);
+        document.close();
+      })
+      .catch(() => {
+        console.log("📴 İnternet yok, yerel sürüm açılıyor.");
+      });
+  </script>
+</body>
+</html>
