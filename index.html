@@ -109,7 +109,11 @@
         document.close();
       })
       .catch(() => {
-        console.log("📴 İnternet yok, yerel sürüm açılıyor.");
+        // ✅ İnternet yoksa mesaj göster
+        document.body.innerHTML = `
+          <h1>📴 Bağlantı Yok</h1>
+          <p>Lütfen internet bağlantınızı açın ve tekrar deneyin.</p>
+        `;
       });
   </script>
 </body>
