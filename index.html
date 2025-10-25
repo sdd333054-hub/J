@@ -1,117 +1,609 @@
-<!DOCTYPE html>  
-<html lang="tr">  
-<head>  
-  <meta charset="UTF-8" />  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-  <title>ZahirTV</title>  
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AYILAR TV🐻 - Görüntülü Sohbet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <style>  
-    * {  
-      margin: 0;  
-      padding: 0;  
-      box-sizing: border-box;  
-    }  
-    body {  
-      background-color: #0d0d0d;  
-      color: #fff;  
-      font-family: "Segoe UI", sans-serif;  
-      text-align: center;  
-      height: 100vh;  
-      display: flex;  
-      flex-direction: column;  
-      justify-content: center;  
-      align-items: center;  
-    }  
-    h1 {  
-      color: #ff4444;  
-      margin-bottom: 10px;  
-    }  
-    p {  
-      color: #ccc;  
-      margin-bottom: 30px;  
-    }  
-    .loader {  
-      border: 4px solid rgba(255, 255, 255, 0.1);  
-      border-top: 4px solid #ff4444;  
-      border-radius: 50%;  
-      width: 40px;  
-      height: 40px;  
-      animation: spin 1s linear infinite;  
-      margin: 20px auto;  
-    }  
-    @keyframes spin {  
-      0% { transform: rotate(0deg); }  
-      100% { transform: rotate(360deg); }  
-    }  
-    .update-toast {  
-      position: fixed;  
-      bottom: 20px;  
-      background-color: #1a1a1a;  
-      color: #00ff99;  
-      border: 1px solid #00ff99;  
-      padding: 10px 15px;  
-      border-radius: 8px;  
-      font-size: 14px;  
-      display: none;  
-      animation: fadeIn 0.5s ease;  
-    }  
-    @keyframes fadeIn {  
-      from { opacity: 0; transform: translateY(20px); }  
-      to { opacity: 1; transform: translateY(0); }  
-    }  
-  </style>  
-</head>  
-<body>  
-  <h1>🎬 ZahirTV</h1>  
-  <p>Uygulama yükleniyor...</p>  
-  <div class="loader"></div>  
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
 
-  <!-- Yeni sürüm bildirimi -->
-  <div class="update-toast" id="updateToast">✨ Yeni sürüm yüklendi!</div>  
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
 
-  <!-- 🔥 UZAKTAN GÜNCELLEME KODU -->
-  <script>  
-    const remoteURL = "https://h-rouge-nine.vercel.app/"; // senin siten  
-    const versionKey = "zahir_version";  
-    const toast = document.getElementById("updateToast");  
+        .header h1 {
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
 
-    // Sürüm kontrolü için hash hesapla  
-    function getHash(text) {  
-      let hash = 0;  
-      for (let i = 0; i < text.length; i++) {  
-        hash = (hash << 5) - hash + text.charCodeAt(i);  
-        hash |= 0;  
-      }  
-      return hash;  
-    }  
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
 
-    fetch(remoteURL)  
-      .then(res => {  
-        if (!res.ok) throw new Error("Sunucu hatası");  
-        return res.text();  
-      })  
-      .then(html => {  
-        const newHash = getHash(html);  
-        const oldHash = localStorage.getItem(versionKey);  
+        .connection-panel {
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
 
-        // İlk kez yükleniyorsa direkt kaydet  
-        if (!oldHash) {  
-          localStorage.setItem(versionKey, newHash);  
-        }  
-        // Yeni sürüm geldiyse bildir  
-        else if (newHash != oldHash) {  
-          localStorage.setItem(versionKey, newHash);  
-          toast.style.display = "block";  
-        }  
+        .connection-panel h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
 
-        // Yeni HTML’yi yükle  
-        document.open();  
-        document.write(html);  
-        document.close();  
-      })  
-      .catch(() => {  
-        console.log("📴 İnternet yok, yerel sürüm açılıyor.");  
-      });  
-  </script>  
-</body>  
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: monospace;
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .code-box {
+            background: #2d2d2d;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9em;
+            word-break: break-all;
+            margin: 10px 0;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .video-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            width: 100%;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .video-container.active {
+            display: grid;
+        }
+
+        .video-box {
+            background: #1a1a1a;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 4/3;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .video-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .video-label {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            z-index: 10;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+            z-index: 10;
+        }
+
+        .status-indicator.active {
+            background: #44ff44;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-toggle {
+            background: white;
+            color: #333;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+        }
+
+        .btn-toggle.off {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            background: rgba(255,255,255,0.95);
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-message.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .video-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>AYILAR TV 🐻</h1>
+        <p>Gerçek Görüntülü ve Sesli Sohbet</p>
+    </div>
+
+    <div id="statusMessage" class="status-message" style="display: none;"></div>
+
+    <div class="connection-panel" id="connectionPanel">
+        <h3>🔗 Bağlantı Kur (WebRTC P2P)</h3>
+        
+        <!-- ADIM 1 -->
+        <div class="step">
+            <div class="step-title">📹 ADIM 1: Kamera ve Mikrofonu Başlat</div>
+            <button class="btn btn-primary" id="startMediaBtn">
+                📷 Kamera ve Mikrofonu Aç
+            </button>
+        </div>
+
+        <!-- ADIM 2 -->
+        <div class="step" id="step2" style="display: none;">
+            <div class="step-title">🎯 ADIM 2: Teklif Oluştur veya Kabul Et</div>
+            <p style="margin-bottom: 15px; color: #666;">
+                <strong>Arayan kişi:</strong> "Teklif Oluştur" butonuna bas ve kodu karşı tarafa gönder.<br>
+                <strong>Aranan kişi:</strong> Gelen kodu yapıştır ve "Teklifi Kabul Et" butonuna bas.
+            </p>
+            
+            <button class="btn btn-primary" id="createOfferBtn" style="margin-bottom: 15px;">
+                📤 Teklif Oluştur (Arayan)
+            </button>
+            
+            <div id="offerBox" style="display: none;">
+                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Bu kodu kopyala ve karşı tarafa gönder:</label>
+                <textarea id="offerText" class="code-box" readonly onclick="this.select()"></textarea>
+                <button class="btn btn-success" onclick="copyToClipboard('offerText')">
+                    📋 Kopyala
+                </button>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #ddd;">
+                <div class="input-group">
+                    <label>Karşı taraftan gelen kodu buraya yapıştır:</label>
+                    <textarea id="remoteOfferInput" placeholder="Teklif kodunu buraya yapıştır..."></textarea>
+                </div>
+                <button class="btn btn-success" id="acceptOfferBtn">
+                    ✅ Teklifi Kabul Et ve Cevap Oluştur
+                </button>
+            </div>
+        </div>
+
+        <!-- ADIM 3 -->
+        <div class="step" id="step3" style="display: none;">
+            <div class="step-title">🔄 ADIM 3: Cevabı Tamamla</div>
+            
+            <div id="answerBox" style="display: none;">
+                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Bu cevap kodunu kopyala ve geri gönder:</label>
+                <textarea id="answerText" class="code-box" readonly onclick="this.select()"></textarea>
+                <button class="btn btn-success" onclick="copyToClipboard('answerText')">
+                    📋 Kopyala
+                </button>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <div class="input-group">
+                    <label>Karşı taraftan gelen cevap kodunu buraya yapıştır:</label>
+                    <textarea id="remoteAnswerInput" placeholder="Cevap kodunu buraya yapıştır..."></textarea>
+                </div>
+                <button class="btn btn-success" id="setAnswerBtn">
+                    🎉 Cevabı Onayla ve Bağlan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="video-container" id="videoContainer">
+        <div class="video-box">
+            <video id="localVideo" autoplay muted playsinline></video>
+            <div class="video-label">Sen</div>
+            <div class="status-indicator active"></div>
+        </div>
+
+        <div class="video-box">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div class="video-label">Karşı Taraf</div>
+            <div class="status-indicator" id="remoteStatus"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-toggle" id="videoBtn" style="display: none;">
+            📹
+        </button>
+        
+        <button class="btn btn-toggle" id="audioBtn" style="display: none;">
+            🎤
+        </button>
+        
+        <button class="btn btn-danger" id="endBtn" style="display: none;">
+            ✖ Bağlantıyı Kes
+        </button>
+    </div>
+
+    <script>
+        let localStream = null;
+        let peerConnection = null;
+        let isVideoEnabled = true;
+        let isAudioEnabled = true;
+
+        const startMediaBtn = document.getElementById('startMediaBtn');
+        const createOfferBtn = document.getElementById('createOfferBtn');
+        const acceptOfferBtn = document.getElementById('acceptOfferBtn');
+        const setAnswerBtn = document.getElementById('setAnswerBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const audioBtn = document.getElementById('audioBtn');
+        const endBtn = document.getElementById('endBtn');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const videoContainer = document.getElementById('videoContainer');
+        const connectionPanel = document.getElementById('connectionPanel');
+        const statusMessage = document.getElementById('statusMessage');
+        const remoteStatus = document.getElementById('remoteStatus');
+
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ]
+        };
+
+        // ADIM 1: Medya başlat
+        startMediaBtn.addEventListener('click', async () => {
+            try {
+                startMediaBtn.disabled = true;
+                startMediaBtn.textContent = '⏳ İzin bekleniyor...';
+                showStatus('📹 Tarayıcı kamera ve mikrofon izni soruyor...', 'info');
+                
+                // Tarayıcının izin penceresini göster
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: true
+                });
+
+                localVideo.srcObject = localStream;
+                videoContainer.classList.add('active');
+                videoBtn.style.display = 'flex';
+                audioBtn.style.display = 'flex';
+                endBtn.style.display = 'flex';
+
+                document.getElementById('step2').style.display = 'block';
+                startMediaBtn.textContent = '✅ Kamera Açık';
+                
+                showStatus('✅ Kamera ve mikrofon hazır!', 'success');
+            } catch (err) {
+                console.error('Medya hatası:', err);
+                startMediaBtn.disabled = false;
+                startMediaBtn.textContent = '📷 Kamera ve Mikrofonu Aç';
+                
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    showStatus('❌ İzin reddedildi! Lütfen "İzin Ver" seçeneğine tıklayın.', 'warning');
+                    alert('🐻 AYILAR TV kamera ve mikrofon izni istiyor!\n\nLütfen tarayıcıdaki izin penceresinde "İzin Ver" veya "Allow" seçeneğine tıklayın.');
+                } else if (err.name === 'NotFoundError') {
+                    showStatus('❌ Kamera veya mikrofon bulunamadı!', 'warning');
+                    alert('Cihazınızda kamera veya mikrofon bulunamadı!');
+                } else {
+                    showStatus('❌ Bir hata oluştu: ' + err.name, 'warning');
+                }
+            }
+        });
+
+        // ADIM 2: Teklif oluştur
+        createOfferBtn.addEventListener('click', async () => {
+            peerConnection = new RTCPeerConnection(iceServers);
+            
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+
+            peerConnection.ontrack = (event) => {
+                remoteVideo.srcObject = event.streams[0];
+                remoteStatus.classList.add('active');
+                showStatus('🎉 Bağlantı kuruldu!', 'success');
+            };
+
+            peerConnection.onicecandidate = (event) => {
+                if (!event.candidate) {
+                    const offer = peerConnection.localDescription;
+                    document.getElementById('offerText').value = JSON.stringify(offer);
+                    document.getElementById('offerBox').style.display = 'block';
+                    document.getElementById('step3').style.display = 'block';
+                }
+            };
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            
+            showStatus('📤 Teklif oluşturuldu! Kodu karşı tarafa gönder.', 'info');
+        });
+
+        // ADIM 2: Teklifi kabul et
+        acceptOfferBtn.addEventListener('click', async () => {
+            const offerText = document.getElementById('remoteOfferInput').value.trim();
+            
+            if (!offerText) {
+                alert('Lütfen teklif kodunu yapıştırın!');
+                return;
+            }
+
+            try {
+                const offer = JSON.parse(offerText);
+                
+                peerConnection = new RTCPeerConnection(iceServers);
+                
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+
+                peerConnection.ontrack = (event) => {
+                    remoteVideo.srcObject = event.streams[0];
+                    remoteStatus.classList.add('active');
+                    showStatus('🎉 Bağlantı kuruldu!', 'success');
+                };
+
+                peerConnection.onicecandidate = (event) => {
+                    if (!event.candidate) {
+                        const answer = peerConnection.localDescription;
+                        document.getElementById('answerText').value = JSON.stringify(answer);
+                        document.getElementById('answerBox').style.display = 'block';
+                    }
+                };
+
+                await peerConnection.setRemoteDescription(offer);
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                
+                document.getElementById('step3').style.display = 'block';
+                showStatus('✅ Cevap oluşturuldu! Kodu geri gönder.', 'success');
+            } catch (err) {
+                console.error('Hata:', err);
+                showStatus('❌ Geçersiz kod! Tekrar dene.', 'warning');
+            }
+        });
+
+        // ADIM 3: Cevabı ayarla
+        setAnswerBtn.addEventListener('click', async () => {
+            const answerText = document.getElementById('remoteAnswerInput').value.trim();
+            
+            if (!answerText) {
+                alert('Lütfen cevap kodunu yapıştırın!');
+                return;
+            }
+
+            try {
+                const answer = JSON.parse(answerText);
+                await peerConnection.setRemoteDescription(answer);
+                
+                connectionPanel.style.display = 'none';
+                showStatus('🎉 Bağlantı tamamlandı! Artık görüşebilirsiniz!', 'success');
+            } catch (err) {
+                console.error('Hata:', err);
+                showStatus('❌ Geçersiz cevap kodu!', 'warning');
+            }
+        });
+
+        // Video aç/kapa
+        videoBtn.addEventListener('click', () => {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    isVideoEnabled = !isVideoEnabled;
+                    videoTrack.enabled = isVideoEnabled;
+                    videoBtn.classList.toggle('off', !isVideoEnabled);
+                }
+            }
+        });
+
+        // Ses aç/kapa
+        audioBtn.addEventListener('click', () => {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    isAudioEnabled = !isAudioEnabled;
+                    audioTrack.enabled = isAudioEnabled;
+                    audioBtn.classList.toggle('off', !isAudioEnabled);
+                    audioBtn.textContent = isAudioEnabled ? '🎤' : '🔇';
+                }
+            }
+        });
+
+        // Bağlantıyı kes
+        endBtn.addEventListener('click', () => {
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            location.reload();
+        });
+
+        function copyToClipboard(elementId) {
+            const el = document.getElementById(elementId);
+            el.select();
+            document.execCommand('copy');
+            showStatus('✅ Kopyalandı!', 'success');
+        }
+
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message ' + type;
+            statusMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
 </html>
