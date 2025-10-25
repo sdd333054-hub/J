@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Permissions-Policy" content="camera=(self), microphone=(self)">
     <title>AYILAR TV🐻</title>
     <style>
         * {
@@ -13,7 +12,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -23,28 +22,23 @@
             padding: 20px;
         }
 
-        .header {
-            text-align: center;
+        h1 {
             color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
             font-size: 3em;
+            margin-bottom: 30px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
         }
 
-        .video-container {
-            background: #1a1a1a;
+        .video-box {
+            background: #000;
             border-radius: 15px;
             overflow: hidden;
-            max-width: 900px;
+            max-width: 800px;
             width: 100%;
             aspect-ratio: 16/9;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            position: relative;
             margin-bottom: 30px;
+            position: relative;
         }
 
         video {
@@ -58,240 +52,178 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: rgba(255,255,255,0.7);
-            font-size: 4em;
+            color: white;
+            font-size: 3em;
             text-align: center;
         }
 
-        .status {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
+        button {
+            background: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.2em;
             font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            margin: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-on {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-off {
+            background: #f44336;
+            color: white;
         }
 
         .controls {
             display: flex;
             gap: 15px;
-            justify-content: center;
             flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        }
-
-        .btn-start {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-size: 1.3em;
-        }
-
-        .btn-toggle {
-            background: white;
-            color: #333;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            padding: 0;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 2em;
         }
 
-        .btn-toggle.off {
-            background: #ff4444;
+        #status {
             color: white;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .info {
-            background: rgba(255,255,255,0.9);
-            padding: 20px;
-            border-radius: 10px;
+            font-size: 1.2em;
             margin-top: 20px;
-            max-width: 600px;
-            text-align: center;
-        }
-
-        .info h3 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .info p {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2em;
-            }
-            .btn-toggle {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5em;
-            }
+            padding: 15px 30px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>AYILAR TV 🐻</h1>
-        <p>Görüntülü Sohbet Sistemi</p>
-    </div>
-
-    <div class="video-container">
-        <video id="video" autoplay playsinline></video>
-        <div class="placeholder" id="placeholder">
-            <div>📹</div>
-            <div style="font-size: 0.3em; margin-top: 20px;">Kamerayı başlat</div>
-        </div>
-        <div class="status" id="status">Hazır</div>
+    <h1>AYILAR TV 🐻</h1>
+    
+    <div class="video-box">
+        <video id="myVideo" autoplay muted playsinline></video>
+        <div class="placeholder" id="placeholder">📹<br><small style="font-size: 0.3em;">Başlamadı</small></div>
     </div>
 
     <div class="controls">
-        <button class="btn btn-start" id="startBtn">
-            🎬 Kamera ve Mikrofonu Başlat
-        </button>
-        
-        <button class="btn btn-toggle" id="videoBtn" style="display: none;">
-            📹
-        </button>
-        
-        <button class="btn btn-toggle" id="audioBtn" style="display: none;">
-            🎤
-        </button>
+        <button id="startBtn" onclick="startCamera()">🎬 BAŞLAT</button>
+        <button id="videoBtn" onclick="toggleVideo()" style="display:none;">📹 Kamera</button>
+        <button id="audioBtn" onclick="toggleAudio()" style="display:none;">🎤 Mikrofon</button>
+        <button id="stopBtn" onclick="stopCamera()" style="display:none;" class="btn-off">⏹ DURDUR</button>
     </div>
 
-    <div class="info">
-        <h3>ℹ️ Bilgi</h3>
-        <p><strong>Not:</strong> Claude.ai artifact'larında kamera izni çalışmaz. Bu kodu kendi bilgisayarında HTML dosyası olarak kaydet ve tarayıcıda aç. Veya <strong>https://</strong> ile çalışan bir sitede (Replit, Netlify, GitHub Pages) host et.</p>
-    </div>
+    <div id="status">Hazır - Başlat butonuna bas</div>
 
     <script>
-        let stream = null;
-        let videoEnabled = true;
-        let audioEnabled = true;
+        let mediaStream = null;
+        let videoOn = true;
+        let audioOn = true;
 
-        const video = document.getElementById('video');
-        const placeholder = document.getElementById('placeholder');
-        const status = document.getElementById('status');
-        const startBtn = document.getElementById('startBtn');
-        const videoBtn = document.getElementById('videoBtn');
-        const audioBtn = document.getElementById('audioBtn');
+        async function startCamera() {
+            const status = document.getElementById('status');
+            const startBtn = document.getElementById('startBtn');
+            const videoBtn = document.getElementById('videoBtn');
+            const audioBtn = document.getElementById('audioBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const video = document.getElementById('myVideo');
+            const placeholder = document.getElementById('placeholder');
 
-        startBtn.onclick = async function() {
             try {
-                startBtn.disabled = true;
-                startBtn.textContent = '⏳ İzin bekleniyor...';
                 status.textContent = 'İzin isteniyor...';
-                status.style.background = 'rgba(255, 165, 0, 0.8)';
+                startBtn.disabled = true;
 
-                // Kamera ve mikrofon izni iste
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    },
-                    audio: true
+                // Basit getUserMedia çağrısı
+                mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true, 
+                    audio: true 
                 });
 
-                // Video'yu göster
-                video.srcObject = stream;
+                video.srcObject = mediaStream;
                 placeholder.style.display = 'none';
-                
-                // Kontrolleri göster
-                videoBtn.style.display = 'flex';
-                audioBtn.style.display = 'flex';
+
                 startBtn.style.display = 'none';
+                videoBtn.style.display = 'inline-block';
+                audioBtn.style.display = 'inline-block';
+                stopBtn.style.display = 'inline-block';
 
-                status.textContent = '✅ Aktif';
-                status.style.background = 'rgba(0, 255, 0, 0.8)';
+                videoBtn.className = 'btn-on';
+                audioBtn.className = 'btn-on';
 
-            } catch (err) {
-                console.error('Hata:', err);
+                status.textContent = '✅ Çalışıyor!';
+
+            } catch (error) {
+                console.error('HATA:', error);
+                status.textContent = '❌ HATA: ' + error.name + ' - ' + error.message;
                 startBtn.disabled = false;
-                startBtn.textContent = '🎬 Kamera ve Mikrofonu Başlat';
                 
-                if (err.name === 'NotAllowedError') {
-                    status.textContent = '❌ İzin reddedildi';
-                    status.style.background = 'rgba(255, 0, 0, 0.8)';
-                    alert('Kamera ve mikrofon izni reddedildi!\n\nTarayıcı ayarlarından izin vermelisiniz.');
-                } else if (err.name === 'NotFoundError') {
-                    status.textContent = '❌ Cihaz bulunamadı';
-                    status.style.background = 'rgba(255, 0, 0, 0.8)';
+                if (error.name === 'NotAllowedError') {
+                    alert('İZİN REDDEDİLDİ!\n\nAdres çubuğundaki kamera ikonuna tıklayıp izin verin.');
+                } else if (error.name === 'NotFoundError') {
                     alert('Kamera veya mikrofon bulunamadı!');
-                } else if (err.name === 'NotReadableError') {
-                    status.textContent = '❌ Cihaz kullanımda';
-                    status.style.background = 'rgba(255, 0, 0, 0.8)';
-                    alert('Kamera başka bir uygulama tarafından kullanılıyor!');
                 } else {
-                    status.textContent = '❌ Hata: ' + err.name;
-                    status.style.background = 'rgba(255, 0, 0, 0.8)';
-                    alert('Bir hata oluştu: ' + err.message);
+                    alert('Hata: ' + error.message);
                 }
             }
-        };
+        }
 
-        videoBtn.onclick = function() {
-            if (stream) {
-                const videoTrack = stream.getVideoTracks()[0];
-                videoEnabled = !videoEnabled;
-                videoTrack.enabled = videoEnabled;
+        function toggleVideo() {
+            if (mediaStream) {
+                const tracks = mediaStream.getVideoTracks();
+                videoOn = !videoOn;
+                tracks.forEach(track => track.enabled = videoOn);
                 
-                videoBtn.classList.toggle('off', !videoEnabled);
-                status.textContent = videoEnabled ? '✅ Aktif' : '📹 Kamera kapalı';
+                const btn = document.getElementById('videoBtn');
+                btn.className = videoOn ? 'btn-on' : 'btn-off';
+                document.getElementById('status').textContent = videoOn ? '✅ Çalışıyor!' : '📹 Kamera kapalı';
             }
-        };
+        }
 
-        audioBtn.onclick = function() {
-            if (stream) {
-                const audioTrack = stream.getAudioTracks()[0];
-                audioEnabled = !audioEnabled;
-                audioTrack.enabled = audioEnabled;
+        function toggleAudio() {
+            if (mediaStream) {
+                const tracks = mediaStream.getAudioTracks();
+                audioOn = !audioOn;
+                tracks.forEach(track => track.enabled = audioOn);
                 
-                audioBtn.classList.toggle('off', !audioEnabled);
-                audioBtn.textContent = audioEnabled ? '🎤' : '🔇';
-                
-                if (!videoEnabled && !audioEnabled) {
-                    status.textContent = '🔇 Her şey kapalı';
-                } else if (!audioEnabled) {
-                    status.textContent = '🔇 Mikrofon kapalı';
-                } else {
-                    status.textContent = '✅ Aktif';
-                }
+                const btn = document.getElementById('audioBtn');
+                btn.className = audioOn ? 'btn-on' : 'btn-off';
+                btn.textContent = audioOn ? '🎤 Mikrofon' : '🔇 Mikrofon';
             }
-        };
+        }
 
-        // Sayfa kapanırken temizle
-        window.onbeforeunload = function() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+        function stopCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+                
+                document.getElementById('myVideo').srcObject = null;
+                document.getElementById('placeholder').style.display = 'block';
+                document.getElementById('startBtn').style.display = 'inline-block';
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('videoBtn').style.display = 'none';
+                document.getElementById('audioBtn').style.display = 'none';
+                document.getElementById('stopBtn').style.display = 'none';
+                document.getElementById('status').textContent = 'Durduruldu';
+                
+                videoOn = true;
+                audioOn = true;
             }
-        };
+        }
+
+        // Kontrol et
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            document.getElementById('status').textContent = '❌ Tarayıcınız desteklemiyor!';
+            document.getElementById('startBtn').disabled = true;
+        }
     </script>
 </body>
 </html>
