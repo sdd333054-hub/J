@@ -222,6 +222,18 @@
             background: rgba(76, 175, 80, 0.9);
         }
         
+        .peer-id-display {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            z-index: 10;
+        }
+        
         @media (max-width: 768px) {
             .video-section {
                 flex-direction: column;
@@ -263,12 +275,14 @@
                 <video id="localVideo" autoplay muted playsinline></video>
                 <div class="video-label">Siz</div>
                 <div class="connection-status" id="localConnectionStatus">Hazır</div>
+                <div class="peer-id-display" id="myPeerId"></div>
                 <div class="status-message" id="localStatus">Kamera bekleniyor...</div>
             </div>
             <div class="video-container">
                 <video id="remoteVideo" autoplay playsinline></video>
                 <div class="video-label">Karşı Taraf</div>
                 <div class="connection-status" id="remoteConnectionStatus">Bağlantı yok</div>
+                <div class="peer-id-display" id="remotePeerId"></div>
                 <div class="status-message" id="remoteStatus">Yayın başlatılmadı</div>
             </div>
         </div>
@@ -291,32 +305,32 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.0/dist/peerjs.min.js"></script>
     <script>
-        // WebRTC ve Signaling değişkenleri
         let localStream = null;
-        let peerConnection = null;
-        let socket = null;
+        let peer = null;
+        let currentCall = null;
         let isBroadcasting = false;
         let isMicOn = true;
         let isCameraOn = true;
         let username = '';
-        let roomId = null;
+        let myPeerId = null;
         
-        // STUN/TURN sunucuları (Google'ın ücretsiz STUN sunucuları)
-        const iceServers = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' }
-            ]
+        // PeerJS yapılandırması (ücretsiz PeerServer)
+        const peerConfig = {
+            host: 'peerjs-server.herokuapp.com',
+            secure: true,
+            port: 443,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' }
+                ]
+            }
         };
 
-        // Socket.IO bağlantısı (kendi sunucunuzu kullanmanız gerekiyor)
-        // Bu örnek için WebSocket yerine basit P2P simülasyonu yapacağız
-        
         async function login() {
             const usernameInput = document.getElementById('username').value.trim();
             const passwordInput = document.getElementById('password').value.trim();
@@ -350,12 +364,10 @@
                 
                 document.getElementById('localVideo').srcObject = localStream;
                 document.getElementById('localStatus').style.display = 'none';
-                document.getElementById('startBtn').disabled = false;
                 document.getElementById('localConnectionStatus').textContent = 'Çevrimiçi';
                 document.getElementById('localConnectionStatus').classList.add('online');
                 
-                // WebRTC peer connection hazırlığı
-                initializeWebRTC();
+                initializePeerJS();
                 
             } catch (err) {
                 console.error('Kamera erişim hatası:', err);
@@ -365,70 +377,52 @@
             }
         }
 
-        function initializeWebRTC() {
-            // PeerConnection oluştur
-            peerConnection = new RTCPeerConnection(iceServers);
+        function initializePeerJS() {
+            // Benzersiz Peer ID oluştur
+            const randomId = 'omegle-' + Math.random().toString(36).substr(2, 9);
             
-            // Local stream'i peer connection'a ekle
-            localStream.getTracks().forEach(track => {
-                peerConnection.addTrack(track, localStream);
+            peer = new Peer(randomId, peerConfig);
+            
+            peer.on('open', (id) => {
+                myPeerId = id;
+                console.log('Peer ID:', id);
+                document.getElementById('myPeerId').textContent = 'ID: ' + id.substr(0, 10) + '...';
+                document.getElementById('startBtn').disabled = false;
             });
             
-            // Remote stream geldiğinde işle
-            peerConnection.ontrack = (event) => {
-                console.log('Remote stream alındı');
-                const remoteVideo = document.getElementById('remoteVideo');
-                if (remoteVideo.srcObject !== event.streams[0]) {
-                    remoteVideo.srcObject = event.streams[0];
+            peer.on('error', (err) => {
+                console.error('Peer hatası:', err);
+                alert('Bağlantı hatası! Lütfen sayfayı yenileyin.');
+            });
+            
+            // Gelen aramayı kabul et
+            peer.on('call', (call) => {
+                console.log('Gelen arama:', call.peer);
+                
+                // Aramayı kabul et ve stream'i gönder
+                call.answer(localStream);
+                
+                currentCall = call;
+                
+                call.on('stream', (remoteStream) => {
+                    console.log('Remote stream alındı');
+                    document.getElementById('remoteVideo').srcObject = remoteStream;
                     document.getElementById('remoteStatus').style.display = 'none';
                     document.getElementById('remoteConnectionStatus').textContent = 'Bağlı';
                     document.getElementById('remoteConnectionStatus').classList.add('online');
-                }
-            };
-            
-            // ICE candidate eventi
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    console.log('ICE candidate:', event.candidate);
-                    // Burada signaling sunucusuna gönderilmeli
-                    sendSignal('ice-candidate', event.candidate);
-                }
-            };
-            
-            // Bağlantı durumu değişiklikleri
-            peerConnection.onconnectionstatechange = () => {
-                console.log('Connection state:', peerConnection.connectionState);
-                const statusDiv = document.getElementById('remoteConnectionStatus');
+                    document.getElementById('remotePeerId').textContent = 'ID: ' + call.peer.substr(0, 10) + '...';
+                });
                 
-                switch(peerConnection.connectionState) {
-                    case 'connected':
-                        statusDiv.textContent = 'Bağlı';
-                        statusDiv.classList.add('online');
-                        break;
-                    case 'disconnected':
-                        statusDiv.textContent = 'Bağlantı kesildi';
-                        statusDiv.classList.remove('online');
-                        break;
-                    case 'failed':
-                        statusDiv.textContent = 'Bağlantı başarısız';
-                        statusDiv.classList.remove('online');
-                        break;
-                    case 'closed':
-                        statusDiv.textContent = 'Bağlantı kapalı';
-                        statusDiv.classList.remove('online');
-                        break;
-                }
-            };
-            
-            // ICE bağlantı durumu
-            peerConnection.oniceconnectionstatechange = () => {
-                console.log('ICE connection state:', peerConnection.iceConnectionState);
-            };
+                call.on('close', () => {
+                    console.log('Arama sonlandı');
+                    disconnectCall();
+                });
+            });
         }
 
         async function startBroadcast() {
-            if (!localStream) {
-                alert('Önce kamera izni vermelisiniz!');
+            if (!localStream || !peer) {
+                alert('Önce kamera izni vermelisiniz ve bağlantı kurulmalıdır!');
                 return;
             }
             
@@ -442,53 +436,73 @@
             document.getElementById('remoteStatus').textContent = 'Kullanıcı aranıyor...';
             document.getElementById('remoteStatus').style.display = 'block';
             
-            // Oda ID'si oluştur (gerçek uygulamada sunucudan gelir)
-            roomId = 'room-' + Math.random().toString(36).substr(2, 9);
+            // Rastgele bir peer ID oluştur ve aramayı başlat
+            findRandomPeer();
+        }
+
+        function findRandomPeer() {
+            // Gerçek uygulamada: sunucudan rastgele bir peer ID al
+            // Bu örnekte: kullanıcıdan peer ID girmesini isteyebiliriz
             
-            // Offer oluştur
-            try {
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-                
-                console.log('Offer oluşturuldu:', offer);
-                
-                // Burada offer'ı signaling sunucusuna göndermelisiniz
-                sendSignal('offer', {
-                    sdp: offer,
-                    roomId: roomId,
-                    username: username
-                });
-                
-                // Demo için rastgele bir kullanıcı bulundu simülasyonu
-                setTimeout(() => {
-                    simulatePeerConnection();
-                }, 2000);
-                
-            } catch (err) {
-                console.error('Offer oluşturma hatası:', err);
-                alert('Bağlantı başlatılamadı!');
+            const remotePeerId = prompt('Bağlanmak istediğiniz Peer ID\'yi girin:\n\n(İki kullanıcının birbirinin ID\'sini girmesi gerekir)\n\nSizin ID\'niz: ' + myPeerId);
+            
+            if (!remotePeerId || remotePeerId.trim() === '') {
+                document.getElementById('remoteStatus').textContent = 'Bağlantı iptal edildi';
+                stopBroadcast();
+                return;
             }
+            
+            connectToPeer(remotePeerId.trim());
         }
 
-        function simulatePeerConnection() {
-            // Gerçek uygulamada bu kısım signaling sunucusu üzerinden olur
-            // Demo amaçlı local stream'i remote video'ya da gösteriyoruz
+        function connectToPeer(remotePeerId) {
+            console.log('Bağlanılıyor:', remotePeerId);
             
-            const clonedStream = localStream.clone();
-            document.getElementById('remoteVideo').srcObject = clonedStream;
-            document.getElementById('remoteStatus').style.display = 'none';
-            document.getElementById('remoteConnectionStatus').textContent = 'Bağlı (Test Modu)';
-            document.getElementById('remoteConnectionStatus').classList.add('online');
+            // Karşı tarafa arama yap
+            const call = peer.call(remotePeerId, localStream);
+            currentCall = call;
             
-            console.log('Test bağlantısı kuruldu - Gerçek kullanım için signaling sunucusu gereklidir!');
+            if (!call) {
+                alert('Bağlantı başlatılamadı! Peer ID kontrol edin.');
+                stopBroadcast();
+                return;
+            }
+            
+            call.on('stream', (remoteStream) => {
+                console.log('Remote stream alındı');
+                document.getElementById('remoteVideo').srcObject = remoteStream;
+                document.getElementById('remoteStatus').style.display = 'none';
+                document.getElementById('remoteConnectionStatus').textContent = 'Bağlı';
+                document.getElementById('remoteConnectionStatus').classList.add('online');
+                document.getElementById('remotePeerId').textContent = 'ID: ' + remotePeerId.substr(0, 10) + '...';
+            });
+            
+            call.on('close', () => {
+                console.log('Arama sonlandı');
+                disconnectCall();
+            });
+            
+            call.on('error', (err) => {
+                console.error('Arama hatası:', err);
+                alert('Bağlantı kurulamadı! Peer ID geçerli değil veya kullanıcı çevrimdışı.');
+                stopBroadcast();
+            });
         }
 
-        function sendSignal(type, data) {
-            // Burası normalde WebSocket ile signaling sunucusuna gönderilir
-            console.log('Signal gönderiliyor:', type, data);
+        function disconnectCall() {
+            const remoteVideo = document.getElementById('remoteVideo');
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+                remoteVideo.srcObject = null;
+            }
             
-            // Örnek: socket.emit(type, data);
-            // Gerçek implementasyon için Node.js + Socket.IO sunucusu gerekir
+            document.getElementById('remoteStatus').style.display = 'block';
+            document.getElementById('remoteStatus').textContent = 'Bağlantı kesildi';
+            document.getElementById('remoteConnectionStatus').textContent = 'Bağlantı yok';
+            document.getElementById('remoteConnectionStatus').classList.remove('online');
+            document.getElementById('remotePeerId').textContent = '';
+            
+            currentCall = null;
         }
 
         function stopBroadcast() {
@@ -499,63 +513,27 @@
             document.getElementById('micBtn').disabled = true;
             document.getElementById('camBtn').disabled = true;
             
-            // Remote stream'i durdur
-            const remoteVideo = document.getElementById('remoteVideo');
-            if (remoteVideo.srcObject) {
-                remoteVideo.srcObject.getTracks().forEach(track => track.stop());
-                remoteVideo.srcObject = null;
+            if (currentCall) {
+                currentCall.close();
             }
             
-            document.getElementById('remoteStatus').style.display = 'block';
-            document.getElementById('remoteStatus').textContent = 'Yayın durduruldu';
-            document.getElementById('remoteConnectionStatus').textContent = 'Bağlantı yok';
-            document.getElementById('remoteConnectionStatus').classList.remove('online');
-            
-            // Peer connection'ı sıfırla
-            if (peerConnection) {
-                peerConnection.close();
-                initializeWebRTC();
-            }
+            disconnectCall();
         }
 
-        async function nextUser() {
+        function nextUser() {
             if (!isBroadcasting) return;
             
-            // Mevcut bağlantıyı kapat
-            const remoteVideo = document.getElementById('remoteVideo');
-            if (remoteVideo.srcObject) {
-                remoteVideo.srcObject.getTracks().forEach(track => track.stop());
-                remoteVideo.srcObject = null;
+            if (currentCall) {
+                currentCall.close();
             }
             
-            if (peerConnection) {
-                peerConnection.close();
-                initializeWebRTC();
-            }
+            disconnectCall();
             
-            document.getElementById('remoteStatus').style.display = 'block';
             document.getElementById('remoteStatus').textContent = 'Yeni kullanıcı aranıyor...';
-            document.getElementById('remoteConnectionStatus').textContent = 'Bağlanıyor...';
-            document.getElementById('remoteConnectionStatus').classList.remove('online');
+            document.getElementById('remoteStatus').style.display = 'block';
             
-            // Yeni bağlantı başlat
-            setTimeout(async () => {
-                try {
-                    const offer = await peerConnection.createOffer();
-                    await peerConnection.setLocalDescription(offer);
-                    sendSignal('offer', {
-                        sdp: offer,
-                        roomId: 'room-' + Math.random().toString(36).substr(2, 9),
-                        username: username
-                    });
-                    
-                    // Demo için simülasyon
-                    setTimeout(() => {
-                        simulatePeerConnection();
-                    }, 1500);
-                } catch (err) {
-                    console.error('Yeni bağlantı hatası:', err);
-                }
+            setTimeout(() => {
+                findRandomPeer();
             }, 500);
         }
 
@@ -583,22 +561,15 @@
             document.getElementById('camBtn').style.background = isCameraOn ? '#FF9800' : '#666';
         }
 
-        // Sayfa kapatılırken temizlik
         window.addEventListener('beforeunload', () => {
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
             }
-            if (peerConnection) {
-                peerConnection.close();
+            if (currentCall) {
+                currentCall.close();
             }
-        });
-        
-        // Görünürlük değiştiğinde (sekme değiştirme)
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                console.log('Sayfa gizlendi');
-            } else {
-                console.log('Sayfa görünür');
+            if (peer) {
+                peer.destroy();
             }
         });
     </script>
