@@ -345,7 +345,17 @@
         }
 
         async function requestCameraPermission() {
+            // HTTPS kontrolü
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                alert('⚠️ Kamera erişimi için HTTPS gereklidir!\n\nLütfen siteyi HTTPS ile açın.');
+                return;
+            }
+            
             try {
+                // Önce izinleri kontrol et
+                const permissions = await navigator.permissions.query({ name: 'camera' });
+                console.log('Kamera izin durumu:', permissions.state);
+                
                 localStream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         width: { ideal: 1280 },
