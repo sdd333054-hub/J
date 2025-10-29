@@ -1,1 +1,606 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omegle TV - Video Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-image {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+        }
+        
+        .logo h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+        }
+        
+        .chat-container {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .video-section {
+            display: flex;
+            height: calc(100% - 80px);
+        }
+        
+        .video-container {
+            flex: 1;
+            position: relative;
+            background: #000;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 10;
+        }
+        
+        .controls {
+            height: 80px;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 0 20px;
+        }
+        
+        .control-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-stop {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-next {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-toggle {
+            background: #FF9800;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            padding: 0;
+            justify-content: center;
+        }
+        
+        .control-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            text-align: center;
+            z-index: 5;
+        }
+        
+        .connection-status {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
+        .online {
+            background: rgba(76, 175, 80, 0.9);
+        }
+        
+        @media (max-width: 768px) {
+            .video-section {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-wrap: wrap;
+                height: auto;
+                padding: 15px;
+            }
+            
+            .control-btn {
+                font-size: 14px;
+                padding: 10px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginContainer">
+        <div class="logo">
+            <div class="logo-image">📹</div>
+            <h1>Omegle TV</h1>
+        </div>
+        <div class="input-group">
+            <label for="username">Kullanıcı Adı</label>
+            <input type="text" id="username" placeholder="Adınızı girin" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Şifre</label>
+            <input type="password" id="password" placeholder="Şifrenizi girin" required>
+        </div>
+        <button class="btn-login" onclick="login()">Giriş Yap</button>
+    </div>
 
+    <div class="chat-container" id="chatContainer">
+        <div class="video-section">
+            <div class="video-container">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div class="video-label">Siz</div>
+                <div class="connection-status" id="localConnectionStatus">Hazır</div>
+                <div class="status-message" id="localStatus">Kamera bekleniyor...</div>
+            </div>
+            <div class="video-container">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div class="video-label">Karşı Taraf</div>
+                <div class="connection-status" id="remoteConnectionStatus">Bağlantı yok</div>
+                <div class="status-message" id="remoteStatus">Yayın başlatılmadı</div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="control-btn btn-start" id="startBtn" onclick="startBroadcast()">
+                ▶ Yayını Başlat
+            </button>
+            <button class="control-btn btn-stop" id="stopBtn" onclick="stopBroadcast()" disabled>
+                ⏹ Yayını Durdur
+            </button>
+            <button class="control-btn btn-next" id="nextBtn" onclick="nextUser()" disabled>
+                ⏭ Sonraki Kullanıcı
+            </button>
+            <button class="control-btn btn-toggle" id="micBtn" onclick="toggleMic()" disabled>
+                🎤
+            </button>
+            <button class="control-btn btn-toggle" id="camBtn" onclick="toggleCamera()" disabled>
+                📹
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        // WebRTC ve Signaling değişkenleri
+        let localStream = null;
+        let peerConnection = null;
+        let socket = null;
+        let isBroadcasting = false;
+        let isMicOn = true;
+        let isCameraOn = true;
+        let username = '';
+        let roomId = null;
+        
+        // STUN/TURN sunucuları (Google'ın ücretsiz STUN sunucuları)
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ]
+        };
+
+        // Socket.IO bağlantısı (kendi sunucunuzu kullanmanız gerekiyor)
+        // Bu örnek için WebSocket yerine basit P2P simülasyonu yapacağız
+        
+        async function login() {
+            const usernameInput = document.getElementById('username').value.trim();
+            const passwordInput = document.getElementById('password').value.trim();
+            
+            if (!usernameInput || !passwordInput) {
+                alert('Lütfen kullanıcı adı ve şifre girin!');
+                return;
+            }
+            
+            username = usernameInput;
+            await requestCameraPermission();
+        }
+
+        async function requestCameraPermission() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+                
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('chatContainer').style.display = 'block';
+                
+                document.getElementById('localVideo').srcObject = localStream;
+                document.getElementById('localStatus').style.display = 'none';
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('localConnectionStatus').textContent = 'Çevrimiçi';
+                document.getElementById('localConnectionStatus').classList.add('online');
+                
+                // WebRTC peer connection hazırlığı
+                initializeWebRTC();
+                
+            } catch (err) {
+                console.error('Kamera erişim hatası:', err);
+                alert('Kamera/Mikrofon erişimi reddedildi!\n\nLütfen tarayıcı ayarlarından kamera ve mikrofon izni verin ve sayfayı yenileyin.');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        function initializeWebRTC() {
+            // PeerConnection oluştur
+            peerConnection = new RTCPeerConnection(iceServers);
+            
+            // Local stream'i peer connection'a ekle
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+            
+            // Remote stream geldiğinde işle
+            peerConnection.ontrack = (event) => {
+                console.log('Remote stream alındı');
+                const remoteVideo = document.getElementById('remoteVideo');
+                if (remoteVideo.srcObject !== event.streams[0]) {
+                    remoteVideo.srcObject = event.streams[0];
+                    document.getElementById('remoteStatus').style.display = 'none';
+                    document.getElementById('remoteConnectionStatus').textContent = 'Bağlı';
+                    document.getElementById('remoteConnectionStatus').classList.add('online');
+                }
+            };
+            
+            // ICE candidate eventi
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    console.log('ICE candidate:', event.candidate);
+                    // Burada signaling sunucusuna gönderilmeli
+                    sendSignal('ice-candidate', event.candidate);
+                }
+            };
+            
+            // Bağlantı durumu değişiklikleri
+            peerConnection.onconnectionstatechange = () => {
+                console.log('Connection state:', peerConnection.connectionState);
+                const statusDiv = document.getElementById('remoteConnectionStatus');
+                
+                switch(peerConnection.connectionState) {
+                    case 'connected':
+                        statusDiv.textContent = 'Bağlı';
+                        statusDiv.classList.add('online');
+                        break;
+                    case 'disconnected':
+                        statusDiv.textContent = 'Bağlantı kesildi';
+                        statusDiv.classList.remove('online');
+                        break;
+                    case 'failed':
+                        statusDiv.textContent = 'Bağlantı başarısız';
+                        statusDiv.classList.remove('online');
+                        break;
+                    case 'closed':
+                        statusDiv.textContent = 'Bağlantı kapalı';
+                        statusDiv.classList.remove('online');
+                        break;
+                }
+            };
+            
+            // ICE bağlantı durumu
+            peerConnection.oniceconnectionstatechange = () => {
+                console.log('ICE connection state:', peerConnection.iceConnectionState);
+            };
+        }
+
+        async function startBroadcast() {
+            if (!localStream) {
+                alert('Önce kamera izni vermelisiniz!');
+                return;
+            }
+            
+            isBroadcasting = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('micBtn').disabled = false;
+            document.getElementById('camBtn').disabled = false;
+            
+            document.getElementById('remoteStatus').textContent = 'Kullanıcı aranıyor...';
+            document.getElementById('remoteStatus').style.display = 'block';
+            
+            // Oda ID'si oluştur (gerçek uygulamada sunucudan gelir)
+            roomId = 'room-' + Math.random().toString(36).substr(2, 9);
+            
+            // Offer oluştur
+            try {
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                
+                console.log('Offer oluşturuldu:', offer);
+                
+                // Burada offer'ı signaling sunucusuna göndermelisiniz
+                sendSignal('offer', {
+                    sdp: offer,
+                    roomId: roomId,
+                    username: username
+                });
+                
+                // Demo için rastgele bir kullanıcı bulundu simülasyonu
+                setTimeout(() => {
+                    simulatePeerConnection();
+                }, 2000);
+                
+            } catch (err) {
+                console.error('Offer oluşturma hatası:', err);
+                alert('Bağlantı başlatılamadı!');
+            }
+        }
+
+        function simulatePeerConnection() {
+            // Gerçek uygulamada bu kısım signaling sunucusu üzerinden olur
+            // Demo amaçlı local stream'i remote video'ya da gösteriyoruz
+            
+            const clonedStream = localStream.clone();
+            document.getElementById('remoteVideo').srcObject = clonedStream;
+            document.getElementById('remoteStatus').style.display = 'none';
+            document.getElementById('remoteConnectionStatus').textContent = 'Bağlı (Test Modu)';
+            document.getElementById('remoteConnectionStatus').classList.add('online');
+            
+            console.log('Test bağlantısı kuruldu - Gerçek kullanım için signaling sunucusu gereklidir!');
+        }
+
+        function sendSignal(type, data) {
+            // Burası normalde WebSocket ile signaling sunucusuna gönderilir
+            console.log('Signal gönderiliyor:', type, data);
+            
+            // Örnek: socket.emit(type, data);
+            // Gerçek implementasyon için Node.js + Socket.IO sunucusu gerekir
+        }
+
+        function stopBroadcast() {
+            isBroadcasting = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('micBtn').disabled = true;
+            document.getElementById('camBtn').disabled = true;
+            
+            // Remote stream'i durdur
+            const remoteVideo = document.getElementById('remoteVideo');
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+                remoteVideo.srcObject = null;
+            }
+            
+            document.getElementById('remoteStatus').style.display = 'block';
+            document.getElementById('remoteStatus').textContent = 'Yayın durduruldu';
+            document.getElementById('remoteConnectionStatus').textContent = 'Bağlantı yok';
+            document.getElementById('remoteConnectionStatus').classList.remove('online');
+            
+            // Peer connection'ı sıfırla
+            if (peerConnection) {
+                peerConnection.close();
+                initializeWebRTC();
+            }
+        }
+
+        async function nextUser() {
+            if (!isBroadcasting) return;
+            
+            // Mevcut bağlantıyı kapat
+            const remoteVideo = document.getElementById('remoteVideo');
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+                remoteVideo.srcObject = null;
+            }
+            
+            if (peerConnection) {
+                peerConnection.close();
+                initializeWebRTC();
+            }
+            
+            document.getElementById('remoteStatus').style.display = 'block';
+            document.getElementById('remoteStatus').textContent = 'Yeni kullanıcı aranıyor...';
+            document.getElementById('remoteConnectionStatus').textContent = 'Bağlanıyor...';
+            document.getElementById('remoteConnectionStatus').classList.remove('online');
+            
+            // Yeni bağlantı başlat
+            setTimeout(async () => {
+                try {
+                    const offer = await peerConnection.createOffer();
+                    await peerConnection.setLocalDescription(offer);
+                    sendSignal('offer', {
+                        sdp: offer,
+                        roomId: 'room-' + Math.random().toString(36).substr(2, 9),
+                        username: username
+                    });
+                    
+                    // Demo için simülasyon
+                    setTimeout(() => {
+                        simulatePeerConnection();
+                    }, 1500);
+                } catch (err) {
+                    console.error('Yeni bağlantı hatası:', err);
+                }
+            }, 500);
+        }
+
+        function toggleMic() {
+            if (!localStream) return;
+            
+            isMicOn = !isMicOn;
+            localStream.getAudioTracks().forEach(track => {
+                track.enabled = isMicOn;
+            });
+            
+            document.getElementById('micBtn').textContent = isMicOn ? '🎤' : '🔇';
+            document.getElementById('micBtn').style.background = isMicOn ? '#FF9800' : '#666';
+        }
+
+        function toggleCamera() {
+            if (!localStream) return;
+            
+            isCameraOn = !isCameraOn;
+            localStream.getVideoTracks().forEach(track => {
+                track.enabled = isCameraOn;
+            });
+            
+            document.getElementById('camBtn').textContent = isCameraOn ? '📹' : '📷';
+            document.getElementById('camBtn').style.background = isCameraOn ? '#FF9800' : '#666';
+        }
+
+        // Sayfa kapatılırken temizlik
+        window.addEventListener('beforeunload', () => {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+        });
+        
+        // Görünürlük değiştiğinde (sekme değiştirme)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('Sayfa gizlendi');
+            } else {
+                console.log('Sayfa görünür');
+            }
+        });
+    </script>
+</body>
+</html>
